@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
-
+// POST METHODS API
 app.post('/api/users', (req,res) => {
   const userBaru = new User({
     username: req.body.username
@@ -63,6 +63,43 @@ app.post('/api/users', (req,res) => {
   });
 });
 
+app.post('/api/users/:_id/exercises', async (req,res) => {
+  try {
+    const user = await User.findOne({_id: req.params._id});
+    
+    if(!user){
+      res.json({error: "failed to find user"});
+    }else{
+      const desc = req.body.description;
+      const dur = req.body.duration;
+      const date = req.body.date;
+      
+      const exercise = {
+        description: desc,
+        duration: dur,
+        date: date
+      }
+      
+      user.logs.push(exercise);
+      
+      await user.save();
+      console.log(`${user.username} successfully added new exercise!`);
+
+      res.json({
+        _id: user._id,
+        username: user.username,
+        description: desc,
+        duration: dur,
+        date: date
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({error: 'internal server error'});
+  }
+});
+  
+// GET METHODS API
 app.get('/api/users', async (req,res) => {
   try {
     
@@ -85,6 +122,33 @@ app.get('/api/users', async (req,res) => {
   }
 });
 
+app.get('/api/users/:_id/logs', async (req,res) => {
+  try {
+    const user = await User.findOne({_id: req.params._id});
+
+    if(!user){
+      res.json({error: 'failed to find user'});
+    }else{
+
+      const logsFormatted = user.logs.map(log => ({
+        description: log.description,
+        duration: log.duration,
+        date: log.date.toDateString()
+      }));
+
+      res.json({
+        _id: user._id,
+        username: user.username,
+        count: user.logs.length,
+        logs: logsFormatted
+      });
+
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({error: 'internal server error'});
+  }
+});
 
 
 const listener = app.listen(process.env.PORT || 3000, () => {
