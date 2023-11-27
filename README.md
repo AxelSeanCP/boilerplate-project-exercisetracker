@@ -15,3 +15,5 @@ This is the boilerplate for the Exercise Tracker project. Instructions for build
 <h2>In the URL</h2>
 <li>use <b>/api/users</b> to get all users</li>
 <li>use <b>/api/users/:_id/logs</b> to get all exercise logs of a user (make sure to put the :_id with your actual id)</li>
+<h6>Optional:</h6>
+<li>after <b>/api/users/:_id/logs</b> use <b>?from=2023-10-10&to=2023-12-25&limit=3</b> to get all exercise logs of a user with query (make sure to replace the from,to,and limit with your actual query)</li>
