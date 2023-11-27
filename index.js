@@ -76,8 +76,8 @@ app.post('/api/users/:_id/exercises', async (req,res) => {
       
       const exercise = {
         description: desc,
-        duration: dur,
-        date: date
+        duration: parseInt(dur),
+        date: date ? new Date(date) : new Date()
       }
       
       user.logs.push(exercise);
@@ -88,9 +88,9 @@ app.post('/api/users/:_id/exercises', async (req,res) => {
       res.json({
         _id: user._id,
         username: user.username,
-        description: desc,
-        duration: dur,
-        date: date
+        date: new Date(exercise.date).toDateString(),
+        duration: exercise.duration,
+        description: desc
       });
     }
   } catch (error) {
@@ -129,19 +129,45 @@ app.get('/api/users/:_id/logs', async (req,res) => {
     if(!user){
       res.json({error: 'failed to find user'});
     }else{
+      const {from = null, to = null, limit = null} = req.query;
+      let filterLog = user.logs;
 
-      const logsFormatted = user.logs.map(log => ({
+      const result = {
+        _id: user._id,
+        username: user.username
+      }
+
+      if(from){
+        const fromDate = new Date(from);
+        filterLog = filterLog.filter(log => log.date >= fromDate);
+
+        result.from = fromDate.toDateString();
+      }
+
+      if(to){
+        const toDate = new Date(to);
+        filterLog = filterLog.filter(log => log.date <= toDate);
+
+        result.to = toDate.toDateString();
+      }
+      
+      if(limit){
+        // parse with radix 10
+        filterLog = filterLog.slice(0, parseInt(limit,10));
+
+        result.limit = parseInt(limit,10);
+      }
+
+      const logsFormatted = filterLog.map(log => ({
         description: log.description,
         duration: log.duration,
         date: log.date.toDateString()
       }));
 
-      res.json({
-        _id: user._id,
-        username: user.username,
-        count: user.logs.length,
-        logs: logsFormatted
-      });
+      result.count = logsFormatted.length;
+      result.log = logsFormatted;
+
+      res.json(result);
 
     }
   } catch (error) {
@@ -149,7 +175,6 @@ app.get('/api/users/:_id/logs', async (req,res) => {
     res.json({error: 'internal server error'});
   }
 });
-
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
