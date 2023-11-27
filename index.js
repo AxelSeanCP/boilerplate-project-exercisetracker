@@ -90,7 +90,7 @@ app.post('/api/users/:_id/exercises', async (req,res) => {
         username: user.username,
         date: new Date(exercise.date).toDateString(),
         duration: exercise.duration,
-        description: desc
+        description: exercise.description
       });
     }
   } catch (error) {
